@@ -75,6 +75,35 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
+// Admin Login
+if (
+    email === process.env.ADMIN_EMAIL &&
+    password === process.env.ADMIN_PASSWORD
+) {
+    const token = jwt.sign(
+        {
+            id: "admin",
+            role: "admin"
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "7d"
+        }
+    );
+
+    return res.status(200).json({
+        success: true,
+        token,
+        user: {
+            id: "admin",
+            name: "Administrator",
+            email: process.env.ADMIN_EMAIL,
+            role: "admin"
+        }
+    });
+}
+
+
     const user = await User.findOne({ email }).select('+password');
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
