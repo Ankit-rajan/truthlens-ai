@@ -1,0 +1,72 @@
+
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="glass-card p-4 p-md-5">
+        <h2 class="text-center mb-4"><i class="fas fa-user-circle me-2"></i>Your Profile</h2>
+        <form id="profileForm">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <div class="text-center mb-4">
+            <img src="<%= user.photo || '/images/default-avatar.png' %>" alt="Profile" class="rounded-circle mb-2" width="120" height="120" id="profileImage" />
+            <div>
+              <label for="photoUpload" class="btn btn-outline-primary btn-sm">Change Photo</label>
+              <input type="file" id="photoUpload" accept="image/*" style="display:none;" />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" name="name" value="<%= user.name %>" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" value="<%= user.email %>" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Role</label>
+            <input type="text" class="form-control" value="<%= user.role %>" disabled />
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+        </form>
+        <hr />
+        <div class="d-flex justify-content-between">
+          <a href="/change-password" class="btn btn-outline-secondary">Change Password</a>
+          <a href="/logout" class="btn btn-outline-danger">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const data = { name: form.name.value, email: form.email.value };
+    try {
+      const res = await axios.put('/api/auth/profile', data);
+      if (res.data.success) {
+        showToast('success', 'Profile updated successfully');
+      }
+    } catch (err) {
+      showToast('error', err.response?.data?.message || 'Update failed');
+    }
+  });
+
+  document.getElementById('photoUpload').addEventListener('change', async function(e) {
+    const file = this.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('photo', file);
+    try {
+      const res = await axios.post('/api/auth/upload-photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.success) {
+        document.getElementById('profileImage').src = res.data.photoUrl + '?t=' + Date.now();
+        showToast('success', 'Photo updated');
+      }
+    } catch (err) {
+      showToast('error', 'Photo upload failed');
+    }
+  });
+</script>

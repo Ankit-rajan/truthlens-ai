@@ -1,0 +1,301 @@
+
+
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="glass-card p-4 p-md-5">
+        <div class="text-center mb-4">
+          <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+          <h2>Create Account</h2>
+          <p class="text-muted">Join the fight against misinformation</p>
+        </div>
+
+        <form id="signupForm" method="POST" action="/api/auth/register">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+          <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-user"></i></span>
+              <input type="text" class="form-control" id="name" name="name" placeholder="John Doe" required minlength="2" maxlength="50" />
+            </div>
+            <div class="invalid-feedback" id="nameError">Please enter your full name (2-50 characters).</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+              <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" required />
+            </div>
+            <div class="invalid-feedback" id="emailError">Please enter a valid email address.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" id="password" name="password" placeholder="Minimum 6 characters" required minlength="6" />
+              <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i>Must be at least 6 characters long.
+            </div>
+            <div class="invalid-feedback" id="passwordError">Password must be at least 6 characters.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+              <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter password" required />
+            </div>
+            <div class="invalid-feedback" id="confirmError">Passwords do not match.</div>
+          </div>
+
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="termsCheck" required />
+            <label class="form-check-label" for="termsCheck">
+              I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a> and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+            </label>
+            <div class="invalid-feedback" id="termsError">You must agree to the terms.</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2" id="signupBtn">
+            <i class="fas fa-user-plus me-2"></i>Create Account
+          </button>
+        </form>
+
+        <div class="mt-4 text-center">
+          <p class="text-muted">Already have an account? <a href="/login" class="fw-bold">Login</a></p>
+        </div>
+
+        <hr />
+
+        <div class="text-center">
+          <p class="text-muted small">By signing up, you agree to our</p>
+          <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-decoration-none me-2 small">Terms</a>
+          <span class="text-muted small">|</span>
+          <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal" class="text-decoration-none ms-2 small">Privacy</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h5 class="modal-title">Terms of Service</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6>1. Acceptance of Terms</h6>
+        <p>By using TruthLens, you agree to these terms. If you don't agree, please don't use our service.</p>
+        <h6>2. User Responsibilities</h6>
+        <p>You are responsible for the accuracy of the content you submit. Misuse of the platform for spreading misinformation is prohibited.</p>
+        <h6>3. Intellectual Property</h6>
+        <p>All content on TruthLens is protected by copyright. You may not reproduce, distribute, or create derivative works without permission.</p>
+        <h6>4. Privacy</h6>
+        <p>Your data is protected in accordance with our Privacy Policy. We use encryption and security best practices.</p>
+        <h6>5. Limitation of Liability</h6>
+        <p>TruthLens provides analysis for informational purposes only. We are not responsible for decisions made based on our analysis.</p>
+        <h6>6. Termination</h6>
+        <p>We reserve the right to suspend or terminate accounts that violate these terms.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h5 class="modal-title">Privacy Policy</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6>Information We Collect</h6>
+        <p>We collect your name, email, and the content you submit for analysis. We also collect usage data to improve our service.</p>
+        <h6>How We Use Your Data</h6>
+        <p>Your data is used to provide analysis, improve our AI models, and send you relevant notifications. We never sell your data.</p>
+        <h6>Data Security</h6>
+        <p>All data is encrypted in transit and at rest. We use industry-standard security practices.</p>
+        <h6>Your Rights</h6>
+        <p>You can request to view, modify, or delete your data at any time. Contact support@truthlens.com for requests.</p>
+        <h6>Cookies</h6>
+        <p>We use cookies for authentication and session management. You can disable cookies in your browser settings.</p>
+        <h6>Third-Party Services</h6>
+        <p>We use OpenAI/Gemini for AI analysis and Cloudinary for image storage. These services have their own privacy policies.</p>
+        <h6>Updates</h6>
+        <p>We may update this policy periodically. Check this page for the latest version.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('signupForm');
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirmPassword');
+    const termsCheck = document.getElementById('termsCheck');
+    const toggleBtn = document.getElementById('togglePassword');
+    const signupBtn = document.getElementById('signupBtn');
+
+    // Toggle password visibility
+    toggleBtn.addEventListener('click', function() {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      this.querySelector('i').className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+    });
+
+    // Real-time validation feedback
+    nameInput.addEventListener('input', function() {
+      if (this.value.length < 2 || this.value.length > 50) {
+        this.classList.add('is-invalid');
+      } else {
+        this.classList.remove('is-invalid');
+      }
+    });
+
+    emailInput.addEventListener('input', function() {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.value)) {
+        this.classList.add('is-invalid');
+      } else {
+        this.classList.remove('is-invalid');
+      }
+    });
+
+    passwordInput.addEventListener('input', function() {
+      if (this.value.length < 6) {
+        this.classList.add('is-invalid');
+      } else {
+        this.classList.remove('is-invalid');
+      }
+      checkPasswordMatch();
+    });
+
+    confirmInput.addEventListener('input', checkPasswordMatch);
+
+    function checkPasswordMatch() {
+      if (passwordInput.value !== confirmInput.value) {
+        confirmInput.classList.add('is-invalid');
+        document.getElementById('confirmError').style.display = 'block';
+      } else {
+        confirmInput.classList.remove('is-invalid');
+        document.getElementById('confirmError').style.display = 'none';
+      }
+    }
+
+    termsCheck.addEventListener('change', function() {
+      if (!this.checked) {
+        this.classList.add('is-invalid');
+        document.getElementById('termsError').style.display = 'block';
+      } else {
+        this.classList.remove('is-invalid');
+        document.getElementById('termsError').style.display = 'none';
+      }
+    });
+
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Validate all fields
+      let isValid = true;
+
+      if (nameInput.value.length < 2 || nameInput.value.length > 50) {
+        nameInput.classList.add('is-invalid');
+        isValid = false;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailInput.value)) {
+        emailInput.classList.add('is-invalid');
+        isValid = false;
+      }
+
+      if (passwordInput.value.length < 6) {
+        passwordInput.classList.add('is-invalid');
+        isValid = false;
+      }
+
+      if (passwordInput.value !== confirmInput.value) {
+        confirmInput.classList.add('is-invalid');
+        document.getElementById('confirmError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (!termsCheck.checked) {
+        termsCheck.classList.add('is-invalid');
+        document.getElementById('termsError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (!isValid) {
+        showToast('warning', 'Please fix the errors in the form.');
+        return;
+      }
+
+      // Submit
+      signupBtn.disabled = true;
+      signupBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
+
+      try {
+        const data = {
+          name: nameInput.value.trim(),
+          email: emailInput.value.trim(),
+          password: passwordInput.value
+        };
+        console.log('[TruthLens] signup attempt:', data.email);
+
+        const res = await axios.post('/api/auth/register', data);
+
+        if (res.data.success) {
+          console.log('[TruthLens] signup successful, redirecting to /dashboard');
+          showToast('success', 'Account created successfully! Redirecting...');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1500);
+        }
+      } catch (err) {
+        const message = err.response?.data?.message || 'Registration failed. Please try again.';
+        console.error('[TruthLens] signup failed:', err.response?.status, message);
+        showToast('error', message);
+        signupBtn.disabled = false;
+        signupBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Create Account';
+      }
+    });
+  });
+</script>
+
+<style>
+  .input-group-text {
+    min-width: 40px;
+    justify-content: center;
+  }
+  #termsCheck.is-invalid ~ .form-check-label {
+    color: #dc3545;
+  }
+  #termsError {
+    display: none;
+  }
+  #confirmError {
+    display: none;
+  }
+</style>

@@ -1,0 +1,46 @@
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="glass-card p-4 p-md-5">
+        <h1 class="display-5 fw-bold mb-3"><i class="fas fa-microscope text-primary me-2"></i>Analyze News</h1>
+        <p class="text-muted">Paste an article or URL below. Our AI will analyze language, claims, bias, and more.</p>
+        <form id="analyzeForm">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <div class="mb-3">
+            <label for="urlInput" class="form-label">Article URL (optional)</label>
+            <input type="url" class="form-control" id="urlInput" placeholder="https://example.com/news" />
+          </div>
+          <div class="mb-3">
+            <label for="contentInput" class="form-label">Article Content</label>
+            <textarea class="form-control" id="contentInput" rows="8" placeholder="Paste the full article text here..."></textarea>
+            <div class="d-flex justify-content-between mt-1">
+              <span id="charCount" class="text-muted small">0 characters</span>
+              <span id="langDetect" class="text-muted small">Language: English</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="categorySelect" class="form-label">Category</label>
+            <select class="form-select" id="categorySelect">
+              <option value="Other">Other</option>
+              <option value="Politics">Politics</option>
+              <option value="Health">Health</option>
+              <option value="Sports">Sports</option>
+              <option value="Finance">Finance</option>
+              <option value="Technology">Technology</option>
+              <option value="Entertainment">Entertainment</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg w-100" id="detectBtn">
+            <i class="fas fa-robot me-2"></i>Detect Fake News
+          </button>
+        </form>
+        <div id="loadingIndicator" class="text-center mt-4 d-none">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2">AI is analyzing... please wait.</p>
+        </div>
+        <div id="analysisResult" class="mt-4 d-none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="/js/analyze.js"></script>

@@ -1,0 +1,43 @@
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="glass-card p-4 p-md-5">
+        <h2 class="text-center mb-4">Welcome Back</h2>
+        <form action="/api/auth/login" method="POST" id="loginForm">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required />
+          </div>
+          <div class="mb-3 text-end">
+            <a href="/forgot-password">Forgot password?</a>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        <p class="text-center mt-3">Don't have an account? <a href="/signup">Sign up</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const data = { email: form.email.value, password: form.password.value };
+    console.log('[TruthLens] login attempt:', data.email);
+    try {
+      const res = await axios.post('/api/auth/login', data);
+      if (res.data.success) {
+        console.log('[TruthLens] login successful, redirecting to /dashboard');
+        window.location.href = '/dashboard';
+      }
+    } catch (err) {
+      console.error('[TruthLens] login failed:', err.response?.status, err.response?.data?.message || err.message);
+      Swal.fire('Error', err.response?.data?.message || 'Login failed', 'error');
+    }
+  });
+</script>

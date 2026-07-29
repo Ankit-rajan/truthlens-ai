@@ -1,0 +1,49 @@
+<%- include('../layout', { title: 'Manage Users' }) %>
+
+<section class="container py-4">
+  <h2 class="mb-4"><i class="fas fa-users me-2"></i>Manage Users</h2>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="usersTableBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  async function loadUsers() {
+    try {
+      const res = await axios.get('/api/admin/users');
+      const users = res.data.users;
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td>${u.name}</td>
+          <td>${u.email}</td>
+          <td>${u.role}</td>
+          <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+          <td>
+            <button class="btn btn-sm btn-danger deleteUser" data-id="${u._id}">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+      document.querySelectorAll('.deleteUser').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          if (!confirm('Delete this user?')) return;
+          try {
+            await axios.delete(`/api/admin/users/${this.dataset.id}`);
+            loadUsers();
+            showToast('success', 'User deleted');
+          } catch (err) {
+            showToast('error', 'Delete failed');
+          }
+        });
+      });
+    } catch (err) {
+      showToast('error', 'Failed to load users');
+    }
+  }
+  loadUsers();
+</script>

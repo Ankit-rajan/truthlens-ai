@@ -1,0 +1,120 @@
+body.dark-mode {
+  background: #12121a;
+  color: #e0e0e0;
+}
+
+/* ===== Navbar ===== */
+/* The navbar has no navbar-light/navbar-dark class, so Bootstrap's default
+   nav-link color stays dark even when the background goes dark (invisible
+   until :hover nudges the shade). Force light text explicitly instead. */
+body.dark-mode .glass-nav {
+  background: rgba(20, 20, 30, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+body.dark-mode .navbar-brand,
+body.dark-mode .nav-link,
+body.dark-mode .dropdown-toggle {
+  color: #e8e8f0 !important;
+}
+body.dark-mode .nav-link:hover,
+body.dark-mode .nav-link:focus,
+body.dark-mode .nav-link.active {
+  color: #ffffff !important;
+}
+body.dark-mode .navbar-toggler-icon {
+  filter: invert(1) grayscale(1) brightness(2);
+}
+body.dark-mode .btn-ghost {
+  color: #e8e8f0;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+body.dark-mode .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+body.dark-mode .dropdown-menu,
+body.dark-mode .glass-dropdown {
+  background: #1e1e2f;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+body.dark-mode .dropdown-item {
+  color: #e0e0e0;
+}
+body.dark-mode .dropdown-item:hover,
+body.dark-mode .dropdown-item:focus {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+body.dark-mode .dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Cards / sections ===== */
+body.dark-mode .glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+body.dark-mode .feature-card {
+  background: #1e1e2f;
+  color: #e0e0e0;
+}
+body.dark-mode .hero-section {
+  background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+}
+body.dark-mode .cta-section {
+  background: linear-gradient(135deg, #0f0f1a, #1a1a2e);
+}
+body.dark-mode .footer {
+  background: #0d0d1a;
+}
+/* Sections/blocks that hardcode Bootstrap's .bg-light (light grey bg) keep
+   the body's light text color on top of a light background in dark mode —
+   same invisible-text problem as the navbar. */
+body.dark-mode .bg-light {
+  background-color: #1a1a26 !important;
+  color: #e0e0e0;
+}
+body.dark-mode .floating-card {
+  background: rgba(30, 30, 47, 0.9);
+  color: #e0e0e0;
+}
+
+/* ===== Tables (history, admin users/trending) ===== */
+body.dark-mode .table {
+  color: #e0e0e0;
+  --bs-table-color: #e0e0e0;
+  --bs-table-bg: transparent;
+  --bs-table-border-color: rgba(255, 255, 255, 0.1);
+}
+body.dark-mode .table-hover > tbody > tr:hover > * {
+  --bs-table-accent-bg: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+/* ===== Form controls ===== */
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+  background-color: #1a1a26;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+  background-color: #1a1a26;
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.25rem rgba(108, 92, 231, 0.25);
+}
+body.dark-mode .form-control::placeholder {
+  color: #8a8a9a;
+}
+body.dark-mode .form-label {
+  color: #cfcfd8;
+}
+
+/* ===== Report content block (bg-light p-3 rounded) ===== */
+body.dark-mode .report-content,
+body.dark-mode .bg-light.p-3.rounded {
+  background-color: #1a1a26 !important;
+  color: #e0e0e0;
+}

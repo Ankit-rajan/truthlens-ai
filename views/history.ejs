@@ -1,0 +1,105 @@
+
+<section class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-6 fw-bold"><i class="fas fa-history me-2"></i>Your History</h1>
+    <button class="btn btn-outline-secondary" id="exportCsvBtn"><i class="fas fa-file-csv me-2"></i>Export CSV</button>
+  </div>
+
+  <!-- Search -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <input type="text" class="form-control" id="searchHistory" placeholder="Search by title..." />
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" id="filterPrediction">
+        <option value="">All Verdicts</option>
+        <option value="True">True</option>
+        <option value="Partially True">Partially True</option>
+        <option value="Likely Fake">Likely Fake</option>
+        <option value="Fake">Fake</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" id="sortHistory">
+        <option value="-createdAt">Newest</option>
+        <option value="createdAt">Oldest</option>
+        <option value="-confidence">Highest Confidence</option>
+        <option value="confidence">Lowest Confidence</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-outline-primary w-100" id="applyHistoryFilters">Apply</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Verdict</th>
+          <th>Confidence</th>
+          <th>Category</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="historyTableBody">
+        <% history.forEach((item, index) => { %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <td><%= item.title %></td>
+            <td><span class="badge bg-<%= item.prediction === 'True' ? 'success' : (item.prediction === 'Partially True' ? 'warning' : 'danger') %>"><%= item.prediction %></span></td>
+            <td><%= item.confidence %>%</td>
+            <td><%= item.category %></td>
+            <td><%= new Date(item.createdAt).toLocaleDateString() %></td>
+            <td>
+              <a href="/report/<%= item._id %>" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
+              <a href="/api/news/report/<%= item._id %>" class="btn btn-sm btn-outline-success"><i class="fas fa-file-pdf"></i></a>
+              <button class="btn btn-sm btn-outline-danger deleteHistory" data-id="<%= item._id %>"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll('.deleteHistory').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const id = this.dataset.id;
+      if (!confirm('Delete this analysis?')) return;
+      try {
+        await axios.delete(`/api/news/history/${id}`);
+        this.closest('tr').remove();
+        showToast('success', 'Deleted');
+      } catch (err) {
+        showToast('error', 'Delete failed');
+      }
+    });
+  });
+
+  document.getElementById('exportCsvBtn').addEventListener('click', async function() {
+    try {
+      const res = await axios.get('/api/news/history/export');
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'history.csv';
+      a.click();
+    } catch (err) {
+      showToast('error', 'Export failed');
+    }
+  });
+
+  // Apply filters (simple client-side, but we can also reload server)
+  document.getElementById('applyHistoryFilters').addEventListener('click', function() {
+    const search = document.getElementById('searchHistory').value;
+    const prediction = document.getElementById('filterPrediction').value;
+    const sort = document.getElementById('sortHistory').value;
+    window.location.href = `/history?search=${search}&prediction=${prediction}&sort=${sort}`;
+  });
+</script>
