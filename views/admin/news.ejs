@@ -1,0 +1,193 @@
+<div class="container-fluid py-4">
+  <div class="admin-layout">
+    <%- include('partials/sidebar', { active: 'news' }) %>
+
+    <div class="admin-content">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="fw-bold mb-0"><i class="fas fa-newspaper me-2"></i>News Management</h1>
+        <button class="btn btn-primary" id="addNewsBtn"><i class="fas fa-plus me-1"></i>Add News</button>
+      </div>
+
+      <div class="glass-card p-3 mb-3">
+        <div class="row g-2">
+          <div class="col-md-4">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by title...">
+          </div>
+          <div class="col-6 col-md-4">
+            <select id="statusFilter" class="form-select">
+              <option value="All">All Statuses</option>
+              <option value="draft">Draft</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="published">Published</option>
+              <option value="unpublished">Unpublished</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <select id="categoryFilter" class="form-select">
+              <option value="All">All Categories</option>
+              <option>Politics</option><option>Health</option><option>Sports</option>
+              <option>Finance</option><option>Technology</option><option>Entertainment</option>
+            </select>
+          </div>
+          <div class="col-md-1">
+            <button class="btn btn-primary w-100" id="searchBtn"><i class="fas fa-search"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr><th>Title</th><th>Category</th><th>Verdict</th><th>Status</th><th>Featured</th><th>Date</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody id="newsTableBody">
+              <tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function statusBadge(status) {
+    return `<span class="badge status-badge-${status}">${status}</span>`;
+  }
+
+  async function loadNews() {
+    const tbody = document.getElementById('newsTableBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr>';
+    try {
+      const params = new URLSearchParams({
+        search: document.getElementById('searchInput').value,
+        status: document.getElementById('statusFilter').value,
+        category: document.getElementById('categoryFilter').value
+      });
+      const res = await axios.get('/api/admin/news?' + params.toString());
+      const items = res.data.news;
+
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No news items found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = items.map(item => `
+        <tr>
+          <td>${item.title}</td>
+          <td>${item.category}</td>
+          <td><span class="badge bg-secondary">${item.prediction}</span></td>
+          <td>${statusBadge(item.status || 'draft')}</td>
+          <td>${item.featured ? '<i class="fas fa-star text-warning"></i>' : ''}</td>
+          <td>${new Date(item.createdAt).toLocaleDateString()}</td>
+          <td class="text-end">
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Actions</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item setStatus" href="#" data-id="${item._id}" data-status="approved">Approve</a></li>
+                <li><a class="dropdown-item setStatus" href="#" data-id="${item._id}" data-status="rejected">Reject</a></li>
+                <li><a class="dropdown-item setStatus" href="#" data-id="${item._id}" data-status="published">Publish</a></li>
+                <li><a class="dropdown-item setStatus" href="#" data-id="${item._id}" data-status="unpublished">Unpublish</a></li>
+                <li><a class="dropdown-item toggleFeatured" href="#" data-id="${item._id}" data-featured="${item.featured}">${item.featured ? 'Unfeature' : 'Feature'}</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger deleteNews" href="#" data-id="${item._id}">Delete</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      attachHandlers();
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Failed to load news</td></tr>';
+    }
+  }
+
+  function attachHandlers() {
+    document.querySelectorAll('.setStatus').forEach(el => el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      try {
+        await axios.put(`/api/admin/news/${this.dataset.id}/status`, { status: this.dataset.status });
+        showToast('success', `Marked as ${this.dataset.status}`);
+        loadNews();
+      } catch (err) {
+        showToast('error', err.response?.data?.message || 'Update failed');
+      }
+    }));
+
+    document.querySelectorAll('.toggleFeatured').forEach(el => el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      const nowFeatured = this.dataset.featured !== 'true';
+      try {
+        await axios.put(`/api/admin/news/${this.dataset.id}`, { featured: nowFeatured });
+        showToast('success', nowFeatured ? 'Featured' : 'Unfeatured');
+        loadNews();
+      } catch (err) {
+        showToast('error', 'Update failed');
+      }
+    }));
+
+    document.querySelectorAll('.deleteNews').forEach(el => el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      const confirm = await Swal.fire({
+        title: 'Delete this article?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Delete'
+      });
+      if (!confirm.isConfirmed) return;
+      try {
+        await axios.delete(`/api/admin/news/${this.dataset.id}`);
+        showToast('success', 'Deleted');
+        loadNews();
+      } catch (err) {
+        showToast('error', 'Delete failed');
+      }
+    }));
+  }
+
+  document.getElementById('addNewsBtn').addEventListener('click', async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Add News',
+      html:
+        `<input id="swal-title" class="swal2-input" placeholder="Title">` +
+        `<select id="swal-category" class="swal2-input">
+           <option value="Politics">Politics</option><option value="Health">Health</option>
+           <option value="Sports">Sports</option><option value="Finance">Finance</option>
+           <option value="Technology">Technology</option><option value="Entertainment">Entertainment</option>
+         </select>` +
+        `<select id="swal-prediction" class="swal2-input">
+           <option value="Fake">Fake</option><option value="Likely Fake">Likely Fake</option>
+           <option value="Partially True">Partially True</option><option value="True">True</option>
+         </select>` +
+        `<textarea id="swal-description" class="swal2-textarea" placeholder="Description"></textarea>`,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Create',
+      preConfirm: () => ({
+        title: document.getElementById('swal-title').value,
+        category: document.getElementById('swal-category').value,
+        prediction: document.getElementById('swal-prediction').value,
+        description: document.getElementById('swal-description').value
+      })
+    });
+    if (!formValues || !formValues.title) return;
+    try {
+      await axios.post('/api/admin/news', formValues);
+      showToast('success', 'News created as draft');
+      loadNews();
+    } catch (err) {
+      showToast('error', err.response?.data?.message || 'Create failed');
+    }
+  });
+
+  document.getElementById('searchBtn').addEventListener('click', loadNews);
+  document.getElementById('searchInput').addEventListener('keyup', (e) => { if (e.key === 'Enter') loadNews(); });
+  document.getElementById('statusFilter').addEventListener('change', loadNews);
+  document.getElementById('categoryFilter').addEventListener('change', loadNews);
+
+  loadNews();
+</script>

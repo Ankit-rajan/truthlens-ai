@@ -1,0 +1,81 @@
+<div class="container-fluid py-4">
+  <div class="admin-layout">
+    <%- include('partials/sidebar', { active: 'ai' }) %>
+
+    <div class="admin-content">
+      <h1 class="fw-bold mb-4"><i class="fas fa-robot me-2"></i>AI Management</h1>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center"><h3 id="requestsToday">-</h3><p class="text-muted small mb-0">Requests Today</p></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center"><h3 id="successRate" class="text-success">-</h3><p class="text-muted small mb-0">Success Rate</p></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center"><h3 id="errorRate" class="text-danger">-</h3><p class="text-muted small mb-0">Error Rate</p></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center"><h3 id="avgConfidence">-</h3><p class="text-muted small mb-0">Avg Confidence</p></div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-md-6">
+          <div class="glass-card p-4">
+            <h5>Provider Usage</h5>
+            <canvas id="providerChart" height="220"></canvas>
+            <p class="mt-3 mb-0 small text-muted">Active provider: <span id="currentProvider" class="fw-bold"></span> (change in <a href="/admin/settings">Settings</a>)</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="glass-card p-4">
+            <h5>Recent Errors</h5>
+            <ul class="list-group list-group-flush" id="errorsList">
+              <li class="list-group-item text-muted">Loading...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (async function () {
+    try {
+      const res = await axios.get('/api/admin/ai/stats');
+      const s = res.data.stats;
+
+      document.getElementById('requestsToday').textContent = s.requestsToday;
+      document.getElementById('successRate').textContent = s.successRate + '%';
+      document.getElementById('errorRate').textContent = s.errorRate + '%';
+      document.getElementById('avgConfidence').textContent = s.avgConfidence + '%';
+      document.getElementById('currentProvider').textContent = s.currentProvider;
+
+      const labels = s.byProvider.map(p => p._id);
+      const values = s.byProvider.map(p => p.count);
+      new Chart(document.getElementById('providerChart'), {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data: values, backgroundColor: ['#6c5ce7', '#00b894', '#fd7e14'] }] }
+      });
+
+      const list = document.getElementById('errorsList');
+      if (!s.recentErrors.length) {
+        list.innerHTML = '<li class="list-group-item text-muted">No recent errors 🎉</li>';
+      } else {
+        list.innerHTML = s.recentErrors.map(e => `
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between">
+              <span class="text-danger">${e.errorMessage || 'Unknown error'}</span>
+              <small class="text-muted">${new Date(e.createdAt).toLocaleString()}</small>
+            </div>
+            <small class="text-muted">Provider: ${e.provider}</small>
+          </li>
+        `).join('');
+      }
+    } catch (err) {
+      showToast('error', 'Failed to load AI stats');
+    }
+  })();
+</script>

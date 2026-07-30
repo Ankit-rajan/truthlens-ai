@@ -31,6 +31,27 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  status: {
+    type: String,
+    enum: ['active', 'suspended', 'banned'],
+    default: 'active'
+  },
+  lastLogin: {
+    type: Date,
+    default: null
+  },
+  failedLoginAttempts: {
+    type: Number,
+    default: 0
+  },
+  // Bumped whenever we want to invalidate every outstanding refresh token for
+  // this user in one shot (password change, role change, ban/suspend, logout
+  // everywhere). A refresh token embeds the version it was issued with; if it
+  // doesn't match the current value it's rejected.
+  tokenVersion: {
+    type: Number,
+    default: 0
+  },
   bookmarks: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'NewsHistory'
@@ -63,5 +84,8 @@ userSchema.pre('save', async function(next) {
 userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+userSchema.index({ role: 1 });
+userSchema.index({ status: 1 });
 
 module.exports = mongoose.model('User', userSchema);

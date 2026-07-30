@@ -89,23 +89,3 @@ document.getElementById('applyFilters')?.addEventListener('click', function() {
 
 // Initial load
 loadTrending();
-
-// Admin add trending
-document.getElementById('saveTrendingBtn')?.addEventListener('click', async function() {
-  const form = document.getElementById('addTrendingForm');
-  const data = {
-    title: form.title.value,
-    description: form.description.value,
-    category: form.category.value,
-    prediction: form.prediction.value,
-    image: form.image.value
-  };
-  try {
-    await axios.post('/api/admin/trending', data);
-    $('#addTrendingModal').modal('hide');
-    showToast('success', 'Trending news added');
-    loadTrending();
-  } catch (err) {
-    showToast('error', err.response?.data?.message || 'Failed to add');
-  }
-});

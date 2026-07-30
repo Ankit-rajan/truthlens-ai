@@ -15,17 +15,18 @@ const registerValidation = [
 
 router.post('/register', authLimiter, registerValidation, authController.register);
 router.post('/login', authLimiter, authController.login);
+router.post('/refresh-token', authLimiter, authController.refreshToken);
 router.get('/logout', authController.logout);
 router.get('/me', protect, authController.getMe);
 router.put('/profile', protect, authController.updateProfile);
-router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
+router.post('/change-password', protect, authController.changePassword);
+router.post('/forgot-password', authLimiter, authController.forgotPassword);
+router.post('/reset-password', authLimiter, authController.resetPassword);
 router.get('/verify-email', authController.verifyEmail);
-
-// ... existing routes ...
 
 router.post('/upload-photo', protect, upload.single('photo'), authController.uploadPhoto);
 router.get('/test', (req, res) => {
   res.json({ message: 'Auth routes working' });
 });
+
 module.exports = router;

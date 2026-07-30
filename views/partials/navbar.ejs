@@ -22,6 +22,9 @@
             <ul class="dropdown-menu dropdown-menu-end glass-dropdown">
               <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
               <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-chart-simple me-2"></i>Dashboard</a></li>
+              <% if (currentUser.role === 'admin') { %>
+                <li><a class="dropdown-item" href="/admin/dashboard"><i class="fas fa-user-shield me-2"></i>Admin Panel</a></li>
+              <% } %>
               <li><hr class="dropdown-divider" /></li>
               <li><a class="dropdown-item text-danger logout-btn" href="/api/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
             </ul>

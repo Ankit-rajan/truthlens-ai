@@ -1,0 +1,99 @@
+<div class="container-fluid py-4">
+  <div class="admin-layout">
+    <%- include('partials/sidebar', { active: 'settings' }) %>
+
+    <div class="admin-content">
+      <h1 class="fw-bold mb-4"><i class="fas fa-cog me-2"></i>Settings</h1>
+
+      <div class="glass-card p-4" style="max-width: 640px;">
+        <form id="settingsForm">
+          <div class="mb-3">
+            <label class="form-label">Site Name</label>
+            <input type="text" class="form-control" id="siteName" name="siteName">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Site Logo URL</label>
+            <input type="text" class="form-control" id="siteLogo" name="siteLogo">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Contact Email</label>
+            <input type="email" class="form-control" id="contactEmail" name="contactEmail">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Contact Phone</label>
+            <input type="text" class="form-control" id="contactPhone" name="contactPhone">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Support Address</label>
+            <textarea class="form-control" id="supportAddress" name="supportAddress" rows="2"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">AI Provider</label>
+            <select class="form-select" id="aiProvider" name="aiProvider">
+              <option value="groq">Groq</option>
+              <option value="gemini">Gemini</option>
+            </select>
+            <div class="form-text">API keys themselves stay in the server's .env file for security — this only selects which one is used.</div>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="registrationEnabled" name="registrationEnabled">
+            <label class="form-check-label" for="registrationEnabled">Allow new registrations</label>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="maintenanceMode" name="maintenanceMode">
+            <label class="form-check-label" for="maintenanceMode">Maintenance Mode</label>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Maintenance Message</label>
+            <textarea class="form-control" id="maintenanceMessage" name="maintenanceMessage" rows="2"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('settingsForm');
+
+  async function loadSettings() {
+    try {
+      const res = await axios.get('/api/admin/settings');
+      const s = res.data.settings;
+      form.siteName.value = s.siteName || '';
+      form.siteLogo.value = s.siteLogo || '';
+      form.contactEmail.value = s.contactEmail || '';
+      form.contactPhone.value = s.contactPhone || '';
+      form.supportAddress.value = s.supportAddress || '';
+      form.aiProvider.value = s.aiProvider || 'groq';
+      form.registrationEnabled.checked = !!s.registrationEnabled;
+      form.maintenanceMode.checked = !!s.maintenanceMode;
+      form.maintenanceMessage.value = s.maintenanceMessage || '';
+    } catch (err) {
+      showToast('error', 'Failed to load settings');
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put('/api/admin/settings', {
+        siteName: form.siteName.value,
+        siteLogo: form.siteLogo.value,
+        contactEmail: form.contactEmail.value,
+        contactPhone: form.contactPhone.value,
+        supportAddress: form.supportAddress.value,
+        aiProvider: form.aiProvider.value,
+        registrationEnabled: form.registrationEnabled.checked,
+        maintenanceMode: form.maintenanceMode.checked,
+        maintenanceMessage: form.maintenanceMessage.value
+      });
+      showToast('success', 'Settings saved');
+    } catch (err) {
+      showToast('error', 'Failed to save settings');
+    }
+  });
+
+  loadSettings();
+</script>

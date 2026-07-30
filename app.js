@@ -21,9 +21,30 @@ const trendingRoutes = require('./routes/trendingRoutes');
 
 const app = express();
 
-// Database connection
+// Required when running behind a reverse proxy (Render, Railway, Docker +
+// nginx, etc.) so req.secure / req.ip and the express-rate-limit IP key are
+// derived from X-Forwarded-* headers instead of the proxy's own address.
+app.set('trust proxy', 1);
+
+// Health check — used by Docker HEALTHCHECK, Render/Railway health probes,
+// and uptime monitors. Deliberately registered before helmet/rate-limit/
+// session so it stays fast and dependency-free.
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    dbState: mongoose.connection.readyState // 1 = connected
+  });
+});
+
+// Database connection — skipped during tests; test files connect to an
+// in-memory MongoDB instance themselves (see tests/setup.js) so the suite
+// never depends on a real MONGODB_URI or network access.
 const connectDB = require('./config/database');
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 // Middleware
 app.use(helmet({
@@ -33,7 +54,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
-app.use(morgan('dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -74,6 +95,10 @@ app.use((req, res, next) => {
 // Sanitization
 const sanitize = require('express-mongo-sanitize');
 app.use(sanitize());
+
+// Maintenance mode (admin bypass handled internally) — toggled from
+// /admin/settings, backed by the Settings collection.
+app.use(require('./middleware/maintenanceMode'));
 
 // View engine
 app.set('view engine', 'ejs');

@@ -1,49 +1,216 @@
-<%- include('../layout', { title: 'Manage Users' }) %>
+<div class="container-fluid py-4">
+  <div class="admin-layout">
+    <%- include('partials/sidebar', { active: 'users' }) %>
 
-<section class="container py-4">
-  <h2 class="mb-4"><i class="fas fa-users me-2"></i>Manage Users</h2>
-  <div class="table-responsive">
-    <table class="table table-hover">
-      <thead>
-        <tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr>
-      </thead>
-      <tbody id="usersTableBody"></tbody>
-    </table>
+    <div class="admin-content">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="fw-bold mb-0"><i class="fas fa-users me-2"></i>Manage Users</h1>
+      </div>
+
+      <div class="glass-card p-3 mb-3">
+        <div class="row g-2">
+          <div class="col-md-5">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by name or email...">
+          </div>
+          <div class="col-6 col-md-3">
+            <select id="roleFilter" class="form-select">
+              <option value="All">All Roles</option>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <select id="statusFilter" class="form-select">
+              <option value="All">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="banned">Banned</option>
+            </select>
+          </div>
+          <div class="col-md-1">
+            <button class="btn btn-primary w-100" id="searchBtn"><i class="fas fa-search"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
-</section>
+</div>
 
 <script>
+  const currentUserId = <%- JSON.stringify(user.id || user._id) %>;
+
+  function statusBadge(status) {
+    return `<span class="badge status-badge-${status}">${status}</span>`;
+  }
+
   async function loadUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr>';
     try {
-      const res = await axios.get('/api/admin/users');
+      const params = new URLSearchParams({
+        search: document.getElementById('searchInput').value,
+        role: document.getElementById('roleFilter').value,
+        status: document.getElementById('statusFilter').value,
+        limit: 100
+      });
+      const res = await axios.get('/api/admin/users?' + params.toString());
       const users = res.data.users;
-      const tbody = document.getElementById('usersTableBody');
+
+      if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No users found</td></tr>';
+        return;
+      }
+
       tbody.innerHTML = users.map(u => `
         <tr>
           <td>${u.name}</td>
           <td>${u.email}</td>
-          <td>${u.role}</td>
+          <td><span class="badge bg-secondary">${u.role}</span></td>
+          <td>${statusBadge(u.status)}</td>
           <td>${new Date(u.createdAt).toLocaleDateString()}</td>
-          <td>
-            <button class="btn btn-sm btn-danger deleteUser" data-id="${u._id}">Delete</button>
+          <td class="text-end">
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Actions</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item editUser" href="#" data-id="${u._id}" data-name="${u.name}" data-email="${u.email}">Edit</a></li>
+                <li><a class="dropdown-item changeRole" href="#" data-id="${u._id}" data-role="${u.role}" ${u._id === currentUserId ? 'style="pointer-events:none;opacity:0.5"' : ''}>Change Role</a></li>
+                ${u.status !== 'active' ? `<li><a class="dropdown-item setStatus" href="#" data-id="${u._id}" data-status="active">Activate</a></li>` : ''}
+                ${u.status !== 'suspended' ? `<li><a class="dropdown-item setStatus" href="#" data-id="${u._id}" data-status="suspended">Suspend</a></li>` : ''}
+                ${u.status !== 'banned' ? `<li><a class="dropdown-item setStatus text-danger" href="#" data-id="${u._id}" data-status="banned">Ban</a></li>` : ''}
+                <li><a class="dropdown-item resetPassword" href="#" data-id="${u._id}">Reset Password</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger deleteUser" href="#" data-id="${u._id}">Delete</a></li>
+              </ul>
+            </div>
           </td>
         </tr>
       `).join('');
-      document.querySelectorAll('.deleteUser').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          if (!confirm('Delete this user?')) return;
-          try {
-            await axios.delete(`/api/admin/users/${this.dataset.id}`);
-            loadUsers();
-            showToast('success', 'User deleted');
-          } catch (err) {
-            showToast('error', 'Delete failed');
-          }
-        });
-      });
+
+      attachHandlers();
     } catch (err) {
-      showToast('error', 'Failed to load users');
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Failed to load users</td></tr>';
     }
   }
+
+  function attachHandlers() {
+    document.querySelectorAll('.editUser').forEach(el => el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      const { value: formValues } = await Swal.fire({
+        title: 'Edit User',
+        html:
+          `<input id="swal-name" class="swal2-input" placeholder="Name" value="${this.dataset.name}">` +
+          `<input id="swal-email" class="swal2-input" placeholder="Email" value="${this.dataset.email}">`,
+        focusConfirm: false,
+        showCancelButton: true,
+        preConfirm: () => ({
+          name: document.getElementById('swal-name').value,
+          email: document.getElementById('swal-email').value
+        })
+      });
+      if (!formValues) return;
+      try {
+        await axios.put(`/api/admin/users/${this.dataset.id}`, formValues);
+        showToast('success', 'User updated');
+        loadUsers();
+      } catch (err) {
+        showToast('error', err.response?.data?.message || 'Update failed');
+      }
+    }));
+
+    document.querySelectorAll('.changeRole').forEach(el => el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      const nextRole = this.dataset.role === 'admin' ? 'user' : 'admin';
+      const confirm = await Swal.fire({
+        title: `Change role to "${nextRole}"?`,
+        text: 'This immediately logs the user out of any active session.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Change Role'
+      });
+      if (!confirm.isConfirmed) return;
+      try {
+        await axios.put(`/api/admin/users/${this.dataset.id}/role`, { role: nextRole });
+        showToast('success', 'Role updated');
+        loadUsers();
+      } catch (err) {
+        showToast('error', err.response?.data?.message || 'Role change failed');
+      }
+    }));
+
+    document.querySelectorAll('.setStatus').forEach(el => el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      const status = this.dataset.status;
+      const confirm = await Swal.fire({
+        title: `Set status to "${status}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Confirm'
+      });
+      if (!confirm.isConfirmed) return;
+      try {
+        await axios.put(`/api/admin/users/${this.dataset.id}/status`, { status });
+        showToast('success', 'Status updated');
+        loadUsers();
+      } catch (err) {
+        showToast('error', err.response?.data?.message || 'Status change failed');
+      }
+    }));
+
+    document.querySelectorAll('.resetPassword').forEach(el => el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      const { value: newPassword } = await Swal.fire({
+        title: 'Reset Password',
+        input: 'password',
+        inputLabel: 'New password (min 6 characters)',
+        showCancelButton: true
+      });
+      if (!newPassword) return;
+      try {
+        await axios.put(`/api/admin/users/${this.dataset.id}/reset-password`, { newPassword });
+        showToast('success', 'Password reset');
+      } catch (err) {
+        showToast('error', err.response?.data?.message || 'Reset failed');
+      }
+    }));
+
+    document.querySelectorAll('.deleteUser').forEach(el => el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      const confirm = await Swal.fire({
+        title: 'Delete this user?',
+        text: 'This cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Delete'
+      });
+      if (!confirm.isConfirmed) return;
+      try {
+        await axios.delete(`/api/admin/users/${this.dataset.id}`);
+        showToast('success', 'User deleted');
+        loadUsers();
+      } catch (err) {
+        showToast('error', err.response?.data?.message || 'Delete failed');
+      }
+    }));
+  }
+
+  document.getElementById('searchBtn').addEventListener('click', loadUsers);
+  document.getElementById('searchInput').addEventListener('keyup', (e) => { if (e.key === 'Enter') loadUsers(); });
+  document.getElementById('roleFilter').addEventListener('change', loadUsers);
+  document.getElementById('statusFilter').addEventListener('change', loadUsers);
+
   loadUsers();
 </script>

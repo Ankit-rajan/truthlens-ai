@@ -1,0 +1,103 @@
+<div class="container-fluid py-4">
+  <div class="admin-layout">
+    <%- include('partials/sidebar', { active: 'reports' }) %>
+
+    <div class="admin-content">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="fw-bold mb-0"><i class="fas fa-flag me-2"></i>Reports Management</h1>
+        <select id="statusFilter" class="form-select w-auto">
+          <option value="All">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="reviewed">Reviewed</option>
+          <option value="resolved">Resolved</option>
+          <option value="dismissed">Dismissed</option>
+        </select>
+      </div>
+
+      <div class="glass-card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr><th>Reporter</th><th>Target</th><th>Reason</th><th>Status</th><th>Date</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody id="reportsTableBody">
+              <tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function statusBadge(status) {
+    return `<span class="badge status-badge-${status}">${status}</span>`;
+  }
+
+  async function loadReports() {
+    const tbody = document.getElementById('reportsTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr>';
+    try {
+      const status = document.getElementById('statusFilter').value;
+      const res = await axios.get('/api/admin/reports?status=' + status);
+      const reports = res.data.reports;
+
+      if (!reports.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No reports found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = reports.map(r => `
+        <tr>
+          <td>${r.reporter ? r.reporter.name + '<br><small class="text-muted">' + r.reporter.email + '</small>' : 'Unknown'}</td>
+          <td>${r.targetType} <br><small class="text-muted">${r.targetId}</small></td>
+          <td>${r.reason}${r.message ? `<br><small class="text-muted">${r.message}</small>` : ''}</td>
+          <td>${statusBadge(r.status)}</td>
+          <td>${new Date(r.createdAt).toLocaleDateString()}</td>
+          <td class="text-end">
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Actions</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item setStatus" href="#" data-id="${r._id}" data-status="reviewed">Mark Reviewed</a></li>
+                <li><a class="dropdown-item setStatus" href="#" data-id="${r._id}" data-status="resolved">Resolve</a></li>
+                <li><a class="dropdown-item setStatus" href="#" data-id="${r._id}" data-status="dismissed">Dismiss</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger deleteReport" href="#" data-id="${r._id}">Delete</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      document.querySelectorAll('.setStatus').forEach(el => el.addEventListener('click', async function (e) {
+        e.preventDefault();
+        try {
+          await axios.put(`/api/admin/reports/${this.dataset.id}`, { status: this.dataset.status });
+          showToast('success', 'Report updated');
+          loadReports();
+        } catch (err) {
+          showToast('error', 'Update failed');
+        }
+      }));
+
+      document.querySelectorAll('.deleteReport').forEach(el => el.addEventListener('click', async function (e) {
+        e.preventDefault();
+        const confirm = await Swal.fire({ title: 'Delete this report?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545' });
+        if (!confirm.isConfirmed) return;
+        try {
+          await axios.delete(`/api/admin/reports/${this.dataset.id}`);
+          showToast('success', 'Deleted');
+          loadReports();
+        } catch (err) {
+          showToast('error', 'Delete failed');
+        }
+      }));
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Failed to load reports</td></tr>';
+    }
+  }
+
+  document.getElementById('statusFilter').addEventListener('change', loadReports);
+  loadReports();
+</script>

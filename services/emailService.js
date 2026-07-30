@@ -28,7 +28,7 @@ class EmailService {
   }
 
   async sendVerificationEmail(user, token) {
-    const url = `${process.env.BASE_URL || 'http://localhost:5000'}/verify-email?token=${token}`;
+    const url = `${process.env.BASE_URL || 'http://localhost:5000'}/api/auth/verify-email?token=${token}`;
     const html = `
       <h1>Verify your email</h1>
       <p>Hi ${user.name},</p>

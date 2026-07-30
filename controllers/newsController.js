@@ -24,7 +24,10 @@ exports.detectNews = async (req, res) => {
     }
 
     // Step 1: AI Analysis
-    const aiResult = await aiService.analyzeNews(articleContent);
+    const aiResult = await aiService.analyzeNews(articleContent, {
+      userId: req.user ? req.user.id : null,
+      source: 'analyze'
+    });
 
     // Step 2: Fact Check (if claims exist)
     let factCheckResults = [];
@@ -182,12 +185,44 @@ exports.exportCSV = async (req, res) => {
     ]);
 
     const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-    
+
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename=history-${Date.now()}.csv`);
     res.status(200).send(csvContent);
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Export failed' });
+  }
+};
+
+// Flag an analysis result for admin review (feeds admin/reports.ejs).
+const ContentReport = require('../models/ContentReport');
+
+exports.reportContent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason, message } = req.body;
+
+    if (!reason) {
+      return res.status(400).json({ success: false, message: 'A reason is required' });
+    }
+
+    const entry = await NewsHistory.findById(id);
+    if (!entry) {
+      return res.status(404).json({ success: false, message: 'Analysis not found' });
+    }
+
+    const report = await ContentReport.create({
+      reporter: req.user.id,
+      targetType: 'NewsHistory',
+      targetId: id,
+      reason,
+      message
+    });
+
+    res.status(201).json({ success: true, report });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Failed to submit report' });
   }
 };

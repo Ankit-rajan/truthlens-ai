@@ -3,6 +3,13 @@ body.dark-mode {
   color: #e0e0e0;
 }
 
+/* Bootstrap muted text fix */
+body.dark-mode .text-muted,
+body.dark-mode .text-body-secondary,
+body.dark-mode .text-secondary {
+    color: #b8bcc8 !important;
+}
+
 /* ===== Navbar ===== */
 /* The navbar has no navbar-light/navbar-dark class, so Bootstrap's default
    nav-link color stays dark even when the background goes dark (invisible
@@ -117,4 +124,64 @@ body.dark-mode .report-content,
 body.dark-mode .bg-light.p-3.rounded {
   background-color: #1a1a26 !important;
   color: #e0e0e0;
+}
+
+
+
+/* ===========================
+   News Cards
+=========================== */
+
+body.dark-mode .news-card,
+body.dark-mode .analysis-card,
+body.dark-mode .card{
+    background:#1d1d2b !important;
+    color:#e8e8f0 !important;
+}
+
+body.dark-mode .card-title,
+body.dark-mode .news-title,
+body.dark-mode .analysis-title,
+body.dark-mode .card h1,
+body.dark-mode .card h2,
+body.dark-mode .card h3,
+body.dark-mode .card h4,
+body.dark-mode .card h5,
+body.dark-mode .card h6{
+    color:#ffffff !important;
+}
+
+body.dark-mode .card p,
+body.dark-mode .card span,
+body.dark-mode .card small,
+body.dark-mode .card li{
+    color:#cfd3df !important;
+}
+
+body.dark-mode .accordion{
+    --bs-accordion-bg:#1d1d2b;
+    --bs-accordion-color:#e8e8f0;
+    --bs-accordion-border-color:rgba(255,255,255,.08);
+    --bs-accordion-btn-bg:#1d1d2b;
+    --bs-accordion-btn-color:#ffffff;
+    --bs-accordion-active-bg:#25253a;
+    --bs-accordion-active-color:#ffffff;
+}
+
+body.dark-mode .accordion-button{
+    color:#fff !important;
+}
+
+body.dark-mode .accordion-button:not(.collapsed){
+    color:#fff !important;
+}
+
+body.dark-mode .accordion-body{
+    color:#d8d8e5 !important;
+}
+
+
+body.dark-mode .accordion-button:focus{
+    box-shadow: 0 0 0 .2rem rgba(76,110,245,.25);
+    border-radius: 16px !important;
 }

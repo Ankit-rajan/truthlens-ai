@@ -1,5 +1,6 @@
 const Groq = require("groq-sdk");
 const axios = require("axios");
+const AIRequestLog = require("../models/AIRequestLog");
 
 class AIService {
   constructor() {
@@ -10,8 +11,16 @@ class AIService {
     this.geminiApiKey = process.env.GEMINI_API_KEY;
   }
 
-  async analyzeNews(articleContent) {
+  // Fire-and-forget: logging must never affect the caller's result/latency.
+  _logRequest(entry) {
+    AIRequestLog.create(entry).catch((err) =>
+      console.error("AI request log write failed:", err.message)
+    );
+  }
+
+  async analyzeNews(articleContent, meta = {}) {
     const provider = (process.env.AI_PROVIDER || "groq").toLowerCase();
+    const startedAt = Date.now();
 
     const prompt = `
 You are a professional investigative journalist with expertise in fact-checking and misinformation analysis.
@@ -113,6 +122,16 @@ Return ONLY valid JSON.
         throw new Error(`Unsupported AI Provider: ${provider}`);
       }
 
+      this._logRequest({
+        provider,
+        status: "success",
+        verdict: result.verdict || null,
+        confidence: typeof result.confidence === "number" ? result.confidence : null,
+        latencyMs: Date.now() - startedAt,
+        triggeredBy: meta.userId || null,
+        source: meta.source || "analyze"
+      });
+
       return result;
     } catch (error) {
       console.error("\n========== AI ERROR ==========");
@@ -127,6 +146,15 @@ Return ONLY valid JSON.
       }
 
       console.error("==============================\n");
+
+      this._logRequest({
+        provider,
+        status: "error",
+        latencyMs: Date.now() - startedAt,
+        errorMessage: error.message?.slice(0, 500) || "Unknown error",
+        triggeredBy: meta.userId || null,
+        source: meta.source || "analyze"
+      });
 
       throw new Error("Failed to analyze news with AI");
     }

@@ -1,67 +1,152 @@
-<%- include('../layout', { title: 'Admin Dashboard' }) %>
+<div class="container-fluid py-4">
+  <div class="admin-layout">
+    <%- include('partials/sidebar', { active: 'dashboard' }) %>
 
-<section class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="display-6 fw-bold"><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h1>
-  </div>
+    <div class="admin-content">
+      <h1 class="fw-bold mb-4"><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h1>
 
-  <!-- Stats Cards -->
-  <div class="row g-4 mb-4" id="adminStats">
-    <div class="col-md-3">
-      <div class="glass-card p-3 text-center">
-        <h3 class="fw-bold" id="totalUsers">0</h3>
-        <p class="text-muted">Total Users</p>
+      <!-- Stats Cards -->
+      <div class="row g-3 mb-4" id="adminStats">
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center h-100">
+            <h3 class="fw-bold mb-0" id="totalUsers">-</h3>
+            <p class="text-muted mb-0 small">Total Users</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center h-100">
+            <h3 class="fw-bold mb-0" id="activeUsers">-</h3>
+            <p class="text-muted mb-0 small">Active Users</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center h-100">
+            <h3 class="fw-bold mb-0" id="newUsersToday">-</h3>
+            <p class="text-muted mb-0 small">New Users Today</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center h-100">
+            <h3 class="fw-bold mb-0" id="totalAnalyses">-</h3>
+            <p class="text-muted mb-0 small">Total Analyses</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center h-100">
+            <h3 class="fw-bold mb-0 text-danger" id="fakeCount">-</h3>
+            <p class="text-muted mb-0 small">Fake News Count</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center h-100">
+            <h3 class="fw-bold mb-0 text-success" id="realCount">-</h3>
+            <p class="text-muted mb-0 small">Real News Count</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center h-100">
+            <h3 class="fw-bold mb-0" id="totalTrending">-</h3>
+            <p class="text-muted mb-0 small">Trending Articles</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center h-100">
+            <h3 class="fw-bold mb-0" id="pendingReports">-</h3>
+            <p class="text-muted mb-0 small">Pending Reports</p>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="col-md-3">
-      <div class="glass-card p-3 text-center">
-        <h3 class="fw-bold" id="totalAnalyses">0</h3>
-        <p class="text-muted">Total Analyses</p>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="glass-card p-3 text-center">
-        <h3 class="fw-bold" id="totalTrending">0</h3>
-        <p class="text-muted">Trending News</p>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="glass-card p-3 text-center">
-        <h3 class="fw-bold" id="totalReports">0</h3>
-        <p class="text-muted">Reports Generated</p>
-      </div>
-    </div>
-  </div>
 
-  <!-- Charts Row -->
-  <div class="row g-4">
-    <div class="col-md-6">
-      <div class="glass-card p-4">
-        <h5>Predictions Breakdown</h5>
-        <canvas id="predictionChart" height="200"></canvas>
+      <!-- AI + System Health -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="glass-card p-4 h-100">
+            <h5><i class="fas fa-robot me-2 text-primary"></i>AI Requests Today</h5>
+            <div class="row text-center mt-3">
+              <div class="col-4">
+                <h4 class="fw-bold mb-0" id="aiRequestsToday">-</h4>
+                <p class="small text-muted mb-0">Requests</p>
+              </div>
+              <div class="col-4">
+                <h4 class="fw-bold mb-0 text-success" id="aiSuccessRate">-</h4>
+                <p class="small text-muted mb-0">Success Rate</p>
+              </div>
+              <div class="col-4">
+                <h4 class="fw-bold mb-0 text-danger" id="aiErrorsToday">-</h4>
+                <p class="small text-muted mb-0">Errors</p>
+              </div>
+            </div>
+            <a href="/admin/ai" class="btn btn-sm btn-outline-primary mt-3">View AI Management</a>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="glass-card p-4 h-100">
+            <h5><i class="fas fa-heartbeat me-2 text-success"></i>System Health</h5>
+            <ul class="list-unstyled mt-3 mb-0">
+              <li class="d-flex justify-content-between border-bottom py-1">
+                <span class="text-muted">Database</span>
+                <span class="badge bg-success">Connected</span>
+              </li>
+              <li class="d-flex justify-content-between border-bottom py-1">
+                <span class="text-muted">Environment</span>
+                <span id="nodeEnv">-</span>
+              </li>
+              <li class="d-flex justify-content-between py-1">
+                <span class="text-muted">Uptime</span>
+                <span id="uptime">-</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="col-md-6">
-      <div class="glass-card p-4">
-        <h5>Monthly Activity</h5>
-        <canvas id="monthlyChart" height="200"></canvas>
+
+      <!-- Charts Row -->
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="glass-card p-4">
+            <h5>Predictions Breakdown</h5>
+            <canvas id="predictionChart" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="glass-card p-4">
+            <h5>Monthly Activity</h5>
+            <canvas id="monthlyChart" height="220"></canvas>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</section>
+</div>
 
 <script>
-  // Fetch stats and render charts
-  (async function() {
+  function formatUptime(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${h}h ${m}m`;
+  }
+
+  (async function () {
     try {
       const statsRes = await axios.get('/api/admin/stats');
       const stats = statsRes.data.stats;
-      document.getElementById('totalUsers').textContent = stats.totalUsers;
-      document.getElementById('totalAnalyses').textContent = stats.totalAnalyses;
-      document.getElementById('totalTrending').textContent = stats.totalTrending || 0;
-      document.getElementById('totalReports').textContent = stats.totalReports || 0;
 
-      // Prediction pie
+      document.getElementById('totalUsers').textContent = stats.totalUsers;
+      document.getElementById('activeUsers').textContent = stats.activeUsers;
+      document.getElementById('newUsersToday').textContent = stats.newUsersToday;
+      document.getElementById('totalAnalyses').textContent = stats.totalAnalyses;
+      document.getElementById('fakeCount').textContent = stats.fakeCount;
+      document.getElementById('realCount').textContent = stats.realCount;
+      document.getElementById('totalTrending').textContent = stats.totalTrending;
+      document.getElementById('pendingReports').textContent = stats.pendingReports;
+
+      document.getElementById('aiRequestsToday').textContent = stats.ai.requestsToday;
+      document.getElementById('aiSuccessRate').textContent = stats.ai.successRate + '%';
+      document.getElementById('aiErrorsToday').textContent = stats.ai.errorsToday;
+
+      document.getElementById('nodeEnv').textContent = stats.systemHealth.nodeEnv;
+      document.getElementById('uptime').textContent = formatUptime(stats.systemHealth.uptimeSeconds);
+
       const predData = stats.predictions || [];
       const labels = predData.map(p => p._id);
       const values = predData.map(p => p.count);
@@ -70,17 +155,17 @@
         data: { labels, datasets: [{ data: values, backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#28a745'] }] }
       });
 
-      // Monthly line
-      const monthlyRes = await axios.get('/api/admin/analytics');
-      const monthly = monthlyRes.data.monthly || [];
+      const analyticsRes = await axios.get('/api/admin/analytics');
+      const monthly = analyticsRes.data.monthly || [];
       const monthLabels = monthly.map(m => `${m._id.month}/${m._id.year}`);
       const monthCounts = monthly.map(m => m.count);
       new Chart(document.getElementById('monthlyChart'), {
         type: 'line',
-        data: { labels: monthLabels, datasets: [{ label: 'Analyses', data: monthCounts, borderColor: '#6c5ce7' }] }
+        data: { labels: monthLabels, datasets: [{ label: 'Analyses', data: monthCounts, borderColor: '#6c5ce7', tension: 0.3 }] }
       });
     } catch (err) {
       console.error(err);
+      showToast('error', 'Failed to load dashboard data');
     }
   })();
 </script>

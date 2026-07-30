@@ -1,0 +1,80 @@
+<div class="container-fluid py-4">
+  <div class="admin-layout">
+    <%- include('partials/sidebar', { active: 'security' }) %>
+
+    <div class="admin-content">
+      <h1 class="fw-bold mb-4"><i class="fas fa-shield-alt me-2"></i>Security</h1>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center"><h3 class="text-success" id="loginsToday">-</h3><p class="small text-muted mb-0">Logins Today</p></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="glass-card p-3 text-center"><h3 class="text-danger" id="failedLoginsToday">-</h3><p class="small text-muted mb-0">Failed Logins Today</p></div>
+        </div>
+      </div>
+
+      <div class="glass-card p-3 mb-3">
+        <select id="actionFilter" class="form-select w-auto">
+          <option value="All">All Actions</option>
+          <option value="login_success">Login Success</option>
+          <option value="login_failed">Login Failed</option>
+          <option value="logout">Logout</option>
+          <option value="user_role_changed">Role Changed</option>
+          <option value="user_status_changed">Status Changed</option>
+          <option value="user_deleted">User Deleted</option>
+          <option value="news_status_changed">News Status Changed</option>
+          <option value="settings_updated">Settings Updated</option>
+        </select>
+      </div>
+
+      <div class="glass-card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr><th>Action</th><th>Actor</th><th>Target</th><th>IP</th><th>When</th></tr>
+            </thead>
+            <tbody id="logsTableBody">
+              <tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function loadLogs() {
+    const tbody = document.getElementById('logsTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr>';
+    try {
+      const action = document.getElementById('actionFilter').value;
+      const res = await axios.get('/api/admin/security/logs?action=' + action + '&limit=100');
+      const { logs, summary } = res.data;
+
+      document.getElementById('loginsToday').textContent = summary.loginsToday;
+      document.getElementById('failedLoginsToday').textContent = summary.failedLoginsToday;
+
+      if (!logs.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No activity found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = logs.map(l => `
+        <tr>
+          <td><span class="badge bg-secondary">${l.action}</span></td>
+          <td>${l.actor ? l.actor.name : (l.actorEmail || 'System')}</td>
+          <td>${l.targetType ? l.targetType : '-'}</td>
+          <td>${l.ip || '-'}</td>
+          <td>${new Date(l.createdAt).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Failed to load logs</td></tr>';
+    }
+  }
+
+  document.getElementById('actionFilter').addEventListener('change', loadLogs);
+  loadLogs();
+</script>

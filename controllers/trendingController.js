@@ -1,5 +1,6 @@
 const axios = require("axios");
 const aiService = require("../services/aiService");
+const TrendingNews = require("../models/TrendingNews");
 
 // Get trending news with search & category filter
 exports.getTrending = async (req, res) => {
@@ -39,7 +40,7 @@ exports.getTrending = async (req, res) => {
               ${article.content || ""}
             `;
 
-          const analysis = await aiService.analyzeNews(articleText);
+          const analysis = await aiService.analyzeNews(articleText, { source: "trending" });
 
           return {
             title: article.title,
@@ -97,46 +98,5 @@ exports.getTrendingById = async (req, res) => {
     res.status(200).json({ success: true, item });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-// Admin - Add trending news
-exports.addTrending = async (req, res) => {
-  try {
-    const { title, description, content, prediction, category, source, image } =
-      req.body;
-    const trending = await TrendingNews.create({
-      title,
-      description,
-      content,
-      prediction: prediction || "Fake",
-      category,
-      source,
-      image,
-      createdBy: req.user.id,
-    });
-    res.status(201).json({ success: true, trending });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to add trending news" });
-  }
-};
-
-// Admin - Delete trending news
-exports.deleteTrending = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deleted = await TrendingNews.findByIdAndDelete(id);
-    if (!deleted) {
-      return res.status(404).json({ success: false, message: "Not found" });
-    }
-    res.status(200).json({ success: true, message: "Deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to delete trending news" });
   }
 };

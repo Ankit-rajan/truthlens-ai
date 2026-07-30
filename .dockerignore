@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+!.env.example
+uploads/*
+!uploads/.gitkeep
+logs
+*.log
+.git
+.gitignore
+.github
+tests
+coverage
+*.md
+.vscode
+.idea

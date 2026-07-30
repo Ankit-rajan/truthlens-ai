@@ -10,4 +10,5 @@ router.delete('/history/:id', protect, newsController.deleteHistory);
 router.post('/bookmark/:id', protect, newsController.bookmark);
 router.get('/report/:id', protect, newsController.generateReport);
 router.get('/history/export', protect, newsController.exportCSV);
+router.post('/report/:id', protect, newsController.reportContent);
 module.exports = router;

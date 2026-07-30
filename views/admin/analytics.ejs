@@ -1,0 +1,79 @@
+<div class="container-fluid py-4">
+  <div class="admin-layout">
+    <%- include('partials/sidebar', { active: 'analytics' }) %>
+
+    <div class="admin-content">
+      <h1 class="fw-bold mb-4"><i class="fas fa-chart-line me-2"></i>Analytics</h1>
+
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="glass-card p-4">
+            <h5>Daily Active Users (last 30 days)</h5>
+            <canvas id="dailyUsersChart" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="glass-card p-4">
+            <h5>Daily Analyses (last 30 days)</h5>
+            <canvas id="dailyAnalysesChart" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="glass-card p-4">
+            <h5>Monthly User Growth</h5>
+            <canvas id="growthChart" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="glass-card p-4">
+            <h5>Fake vs Real</h5>
+            <canvas id="fakeRealChart" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (async function () {
+    try {
+      const res = await axios.get('/api/admin/analytics');
+      const d = res.data;
+
+      new Chart(document.getElementById('dailyUsersChart'), {
+        type: 'bar',
+        data: {
+          labels: d.dailyUsers.map(x => x._id),
+          datasets: [{ label: 'New Users', data: d.dailyUsers.map(x => x.count), backgroundColor: '#6c5ce7' }]
+        }
+      });
+
+      new Chart(document.getElementById('dailyAnalysesChart'), {
+        type: 'bar',
+        data: {
+          labels: d.dailyAnalyses.map(x => x._id),
+          datasets: [{ label: 'Analyses', data: d.dailyAnalyses.map(x => x.count), backgroundColor: '#00b894' }]
+        }
+      });
+
+      new Chart(document.getElementById('growthChart'), {
+        type: 'line',
+        data: {
+          labels: d.monthlyUserGrowth.map(x => `${x._id.month}/${x._id.year}`),
+          datasets: [{ label: 'Users', data: d.monthlyUserGrowth.map(x => x.count), borderColor: '#fd7e14', tension: 0.3 }]
+        }
+      });
+
+      new Chart(document.getElementById('fakeRealChart'), {
+        type: 'pie',
+        data: {
+          labels: d.fakeVsReal.map(x => x._id),
+          datasets: [{ data: d.fakeVsReal.map(x => x.count), backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#28a745'] }]
+        }
+      });
+    } catch (err) {
+      showToast('error', 'Failed to load analytics');
+    }
+  })();
+</script>

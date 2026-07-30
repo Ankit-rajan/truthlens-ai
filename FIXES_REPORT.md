@@ -255,3 +255,32 @@ npm run dev
 Then test: signup → login → analyze → dashboard → logout, and check the
 server console for a clean start (no `ReferenceError`, no `EBADCSRFTOKEN`
 on login).
+
+## Round 6 — Admin Panel + RBAC + Auth rebuild (this session)
+
+### 12. Every admin page (`/admin/dashboard`, `/admin/users`, `/admin/trending`) 500'd
+Each view had a stray `<%- include('../layout', { title: ... }) %>` at the top. `express-ejs-layouts` already wraps every `res.render()` call in `layout.ejs` automatically — this line triggered a **second**, manual render of `layout.ejs` nested inside the page content, and that nested render referenced `body`, a variable only ever set by the automatic top-level wrap. Result: `ReferenceError: body is not defined` on every single admin page. Removed the manual includes; `title` is now passed normally via `res.render(view, { title: '...' })` from `viewRoutes.js`, matching every other page in the app.
+
+### 13. Hard-coded `.env` admin login bypass
+`authController.login()` special-cased `email === ADMIN_EMAIL && password === ADMIN_PASSWORD` and minted a JWT for a fabricated `{ id: 'admin' }` user that didn't exist in MongoDB — bypassing hashing, RBAC, and status checks entirely, and breaking anywhere the code assumed `req.user.id` was a real ObjectId. Removed. Admin is now a normal MongoDB user (`role: 'admin'`), auto-seeded on startup (`utils/seedAdmin.js`), authenticated through the same path as everyone else.
+
+### 14. `TrendingNews` used but never imported in `trendingController.js`
+`getTrendingById`, `addTrending`, and `deleteTrending` all referenced the `TrendingNews` model without a `require` anywhere in the file — guaranteed `ReferenceError` the moment any of them ran. Fixed (and `addTrending`/`deleteTrending` were subsequently superseded by the fuller admin News Management CRUD, removing the duplication rather than fixing both copies).
+
+### 15. Email verification link pointed at a page that doesn't exist
+`emailService.sendVerificationEmail` built a link to `/verify-email?token=...` — a page route that was never defined. The actual route is `GET /api/auth/verify-email`. Fixed the link.
+
+### 16. `change-password` page posted to a route with the wrong HTTP method
+`views/change-password.ejs` does `axios.post('/api/auth/change-password', ...)`; the route (both before and immediately after this session's initial auth rewrite) was defined as `PUT`, which would 404 a POST. Defined the route as `POST` to match the existing, working frontend call.
+
+### 17. Dead admin "Add Trending" modal on the public `/trending` page
+The public trending page rendered an admin-only "Add New" button/modal that posted to `/api/admin/trending` — a route that no longer exists (superseded by the dedicated News Management page). Removed the modal and its handler; the button now links to `/admin/news`.
+
+### 18. Unused `apiLimiter` export
+`middleware/rateLimiter.js` defined an `apiLimiter` that was never imported or applied anywhere — `app.js` has its own inline global rate limiter instead. Removed the dead export.
+
+### Added, not "fixed" (net-new capability, not present before this session)
+Full RBAC (roles + status), refresh tokens with bulk revocation via `tokenVersion`, audit logging, the entire admin Users/News/Reports/AI/Analytics/Settings/Security surface, maintenance mode, `/health`, environment validation, graceful shutdown, Docker/CI/4-platform deployment configs, and the Jest test suite. See `PROJECT_REPORT.md` and `CHANGELOG.md` for the full list.
+
+### Known gap, not fixed this session
+`POST /api/news/report/:id` (flag an analysis for review) exists and is fully functional server-side, but isn't wired to a button anywhere in the main app UI yet (only reachable directly via API, or exercised through the admin Reports tab once a report exists). Flagging for a follow-up UI pass.

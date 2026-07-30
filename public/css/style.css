@@ -98,3 +98,47 @@ body { background: var(--light-bg); transition: background 0.3s; }
   transition: 0.3s;
 }
 .social-link:hover { background: var(--primary); color: white; }
+/* ---------------------------------------------------------------------- */
+/* Admin panel                                                            */
+/* ---------------------------------------------------------------------- */
+.admin-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+.admin-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 90px;
+}
+.admin-sidebar .nav-link {
+  color: #495057;
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.admin-sidebar .nav-link i { width: 18px; text-align: center; }
+.admin-sidebar .nav-link:hover { background: rgba(108, 92, 231, 0.08); color: var(--primary); }
+.admin-sidebar .nav-link.active { background: var(--primary); color: #fff; }
+.admin-content { flex: 1; min-width: 0; }
+@media (max-width: 991px) {
+  .admin-layout { flex-direction: column; }
+  .admin-sidebar { width: 100%; position: static; }
+}
+.status-badge-active { background: #28a745; }
+.status-badge-suspended { background: #fd7e14; }
+.status-badge-banned { background: #dc3545; }
+.status-badge-pending { background: #ffc107; color: #212529; }
+.status-badge-resolved { background: #28a745; }
+.status-badge-dismissed { background: #6c757d; }
+.status-badge-reviewed { background: #0dcaf0; color: #212529; }
+.status-badge-draft { background: #6c757d; }
+.status-badge-approved { background: #0dcaf0; color: #212529; }
+.status-badge-rejected { background: #dc3545; }
+.status-badge-published { background: #28a745; }
+.status-badge-unpublished { background: #6c757d; }

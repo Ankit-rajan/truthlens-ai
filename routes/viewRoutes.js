@@ -4,10 +4,17 @@ const { protectPage, optionalAuth } = require('../middleware/auth');
 const TrendingNews = require('../models/TrendingNews');
 const NewsHistory = require('../models/NewsHistory');
 
+// Only ever show published items on public pages. $exists: false keeps
+// records created before the moderation workflow was added (status field
+// didn't exist yet) visible instead of silently disappearing.
+const PUBLISHED_FILTER = { $or: [{ status: 'published' }, { status: { $exists: false } }] };
+
 // Home
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const trending = await TrendingNews.find().sort({ createdAt: -1 }).limit(3);
+    const trending = await TrendingNews.find(PUBLISHED_FILTER)
+      .sort({ featured: -1, createdAt: -1 })
+      .limit(3);
     res.render('index', { trending, user: req.user || null });
   } catch (error) {
     res.render('index', { trending: [], user: req.user || null });
@@ -23,10 +30,10 @@ router.get('/analyze', protectPage, (req, res) => {
 router.get('/trending', optionalAuth, async (req, res) => {
   try {
     const { category, search } = req.query;
-    let filter = {};
+    let filter = { ...PUBLISHED_FILTER };
     if (category && category !== 'All') filter.category = category;
     if (search) filter.title = { $regex: search, $options: 'i' };
-    const trending = await TrendingNews.find(filter).sort({ createdAt: -1 });
+    const trending = await TrendingNews.find(filter).sort({ featured: -1, createdAt: -1 });
     res.render('trending', { trending, user: req.user, filters: { category, search } });
   } catch (error) {
     res.render('trending', { trending: [], user: req.user, filters: {} });
@@ -82,18 +89,41 @@ router.get('/report/:id', protectPage, async (req, res) => {
   }
 });
 
-// Admin routes
-router.get('/admin/dashboard', protectPage, (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).render('403', { user: req.user });
-  res.render('admin/dashboard', { user: req.user });
+// Admin routes — page-level guard is deliberately in addition to the
+// API-level RBAC in adminRoutes.js: this stops a non-admin from even seeing
+// the page shell, while the underlying data still can't be fetched without
+// passing middleware/rbac.js on the API side either way.
+function requireAdminPage(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).render('403', { user: req.user || null });
+  }
+  next();
+}
+
+router.get('/admin', protectPage, requireAdminPage, (req, res) => res.redirect('/admin/dashboard'));
+router.get('/admin/dashboard', protectPage, requireAdminPage, (req, res) => {
+  res.render('admin/dashboard', { user: req.user, title: 'Admin Dashboard' });
 });
-router.get('/admin/users', protectPage, (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).render('403', { user: req.user });
-  res.render('admin/users', { user: req.user });
+router.get('/admin/users', protectPage, requireAdminPage, (req, res) => {
+  res.render('admin/users', { user: req.user, title: 'Manage Users' });
 });
-router.get('/admin/trending', protectPage, (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).render('403', { user: req.user });
-  res.render('admin/trending', { user: req.user });
+router.get('/admin/news', protectPage, requireAdminPage, (req, res) => {
+  res.render('admin/news', { user: req.user, title: 'News Management' });
+});
+router.get('/admin/reports', protectPage, requireAdminPage, (req, res) => {
+  res.render('admin/reports', { user: req.user, title: 'Reports Management' });
+});
+router.get('/admin/ai', protectPage, requireAdminPage, (req, res) => {
+  res.render('admin/ai', { user: req.user, title: 'AI Management' });
+});
+router.get('/admin/analytics', protectPage, requireAdminPage, (req, res) => {
+  res.render('admin/analytics', { user: req.user, title: 'Analytics' });
+});
+router.get('/admin/settings', protectPage, requireAdminPage, (req, res) => {
+  res.render('admin/settings', { user: req.user, title: 'Settings' });
+});
+router.get('/admin/security', protectPage, requireAdminPage, (req, res) => {
+  res.render('admin/security', { user: req.user, title: 'Security' });
 });
 
 // 404
