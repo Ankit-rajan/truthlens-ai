@@ -58,7 +58,7 @@ app.use(session({
   }
 }));
 
-CSRF protection — skip for /api routes.
+// CSRF protection — skip for /api routes.
 // The frontend JS (login.ejs, signup.ejs, etc.) posts JSON via axios and never
 // attaches the _csrf token to those requests, so applying csurf globally made
 // every single API POST/PUT/DELETE fail with 403 "invalid csrf token" —
