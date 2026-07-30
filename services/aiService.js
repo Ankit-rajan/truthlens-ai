@@ -3,13 +3,24 @@ const axios = require("axios");
 const AIRequestLog = require("../models/AIRequestLog");
 
 class AIService {
+  // constructor() {
+  //   this.groq = new Groq({
+  //     apiKey: process.env.GROQ_API_KEY,
+  //   });
+
+  //   this.geminiApiKey = process.env.GEMINI_API_KEY;
+  // }
   constructor() {
+  this.groq = null;
+
+  if (process.env.GROQ_API_KEY) {
     this.groq = new Groq({
       apiKey: process.env.GROQ_API_KEY,
     });
-
-    this.geminiApiKey = process.env.GEMINI_API_KEY;
   }
+
+  this.geminiApiKey = process.env.GEMINI_API_KEY;
+}
 
   // Fire-and-forget: logging must never affect the caller's result/latency.
   _logRequest(entry) {
@@ -76,6 +87,44 @@ Return ONLY valid JSON.
 
         result = JSON.parse(response.choices[0].message.content);
       }
+
+
+      
+
+
+if (provider === "groq") {
+  if (!this.groq) {
+    throw new Error("GROQ_API_KEY is missing.");
+  }
+
+  const response = await this.groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    temperature: 0.3,
+    response_format: {
+      type: "json_object",
+    },
+    messages: [
+      {
+        role: "system",
+        content: "You are an expert fact checker. Return ONLY valid JSON.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  });
+
+  result = JSON.parse(response.choices[0].message.content);
+}
+
+
+
+
+
+
+
+
 
       // ===========================
       // GEMINI

@@ -27,7 +27,7 @@ describe('User model', () => {
   });
 
   test('rejects a duplicate email', async () => {
-    await User.create({ name: 'A', email: 'dup@example.com', password: 'password123' });
+    await User.create({ name: 'Alex', email: 'dup@example.com', password: 'password123' });
     await expect(
       User.create({ name: 'B', email: 'dup@example.com', password: 'password123' })
     ).rejects.toThrow();
