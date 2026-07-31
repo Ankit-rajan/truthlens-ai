@@ -65,29 +65,7 @@ Return ONLY valid JSON.
       // ===========================
       // GROQ
       // ===========================
-      if (provider === "groq") {
-        const response = await this.groq.chat.completions.create({
-          model: "llama-3.3-70b-versatile",
-          temperature: 0.3,
-          response_format: {
-            type: "json_object",
-          },
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are an expert fact checker. Return ONLY valid JSON.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-        });
-
-        result = JSON.parse(response.choices[0].message.content);
-      }
-
+     
 
       
 

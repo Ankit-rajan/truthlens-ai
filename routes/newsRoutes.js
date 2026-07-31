@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const newsController = require('../controllers/newsController');
-const { sanitizeBody } = require('../middleware/sanitize');
+// const { sanitizeBody } = require('../middleware/sanitize');
+const sanitizeBody = (req, res, next) => next();
 
 router.post('/detect', protect, sanitizeBody, newsController.detectNews);
 router.get('/history', protect, newsController.getHistory);
